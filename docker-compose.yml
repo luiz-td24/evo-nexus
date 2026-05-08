@@ -1,6 +1,11 @@
 services:
   # Dashboard — Flask + React (single container)
   dashboard:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.evo_nexus.rule=Host(`nexus-vps-local.td24.com.br`)
+      - traefik.http.routers.evo_nexus.entrypoints=web
+      - traefik.http.services.evo_nexus.loadbalancer.server.port=8080
     build:
       context: .
       dockerfile: Dockerfile.swarm.dashboard
