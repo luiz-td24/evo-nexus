@@ -1,3 +1,5 @@
+name: evo-nexus
+
 services:
   # Dashboard — Flask + React (single container)
   dashboard:
@@ -6,6 +8,10 @@ services:
       - traefik.http.routers.evo_nexus.rule=Host(`nexus-vps-local.td24.com.br`)
       - traefik.http.routers.evo_nexus.entrypoints=web
       - traefik.http.services.evo_nexus.loadbalancer.server.port=8080
+      - traefik.docker.network=meu-homelab-net
+    networks:
+      - default
+      - meu-homelab-net
     build:
       context: .
       dockerfile: Dockerfile.swarm.dashboard
@@ -84,6 +90,10 @@ services:
       - agent-memory:/workspace/.claude/agent-memory
     profiles:
       - manual
+
+networks:
+  meu-homelab-net:
+    external: true
 
 volumes:
   claude-auth:
