@@ -17,7 +17,7 @@ services:
       dockerfile: Dockerfile.swarm.dashboard
     container_name: evonexus-dashboard
     ports:
-      - "8081:8080"
+      - "3380:8080"
       - "32352:32352"
     env_file: .env
     environment:
@@ -67,6 +67,7 @@ services:
     restart: unless-stopped
     stdin_open: true
     tty: true
+    user: "1000:1000"
 
   # Runner on-demand — to execute routines manually
   # Usage: docker compose run --rm runner ADWs/routines/good_morning.py
@@ -107,3 +108,8 @@ volumes:
   memory:
   adw-logs:
   agent-memory:
+
+networks:
+  default: {}
+  meu-homelab-net:
+    external: true

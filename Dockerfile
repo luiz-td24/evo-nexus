@@ -6,9 +6,8 @@ RUN apt-get update && apt-get install -y \
     curl git jq screen \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.local/bin:$PATH"
+# Install uv globally (accessible to all users)
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
 # Install Claude Code CLI (default provider)
 RUN npm install -g @anthropic-ai/claude-code
@@ -26,20 +25,25 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
 # Install todoist CLI
 RUN npm install -g todoist-ts-cli
 
+# Timezone (must run as root — before USER switch)
+ENV TZ=America/Sao_Paulo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 WORKDIR /workspace
+RUN chown node:node /workspace
+
+# Switch to non-root user (node:22-slim includes 'node' user at UID 1000)
+# Required: claude --dangerously-skip-permissions is blocked when running as root
+USER node
 
 # Copy project files
-COPY pyproject.toml uv.lock ./
+COPY --chown=node:node pyproject.toml uv.lock ./
 
 # Install Python deps
 RUN uv venv .venv && uv sync
 
 # Copy workspace
-COPY . .
-
-# Timezone
-ENV TZ=America/Sao_Paulo
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+COPY --chown=node:node . .
 
 # Volumes for persistent data
 VOLUME ["/workspace/workspace/daily-logs", \
